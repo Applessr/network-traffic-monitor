@@ -41,10 +41,10 @@ def capture_measurement():
         iface=INTERFACE
     )
 
-    # Start capturing
+    # Start packet capture
     sniffer.start()
 
-    # Wait for the measurement interval
+    # Wait for measurement interval
     for _ in range(CAPTURE_DURATION):
 
         if stop_requested:
@@ -52,13 +52,12 @@ def capture_measurement():
 
         time.sleep(1)
 
-    # Stop the sniffer
+    # Stop packet capture
     packets = sniffer.stop()
 
-    # Clear sniffer reference
     sniffer = None
 
-    # If user requested stop, do not save
+    # Do not save incomplete measurement
     if stop_requested:
 
         print("Current measurement was not saved.")
@@ -79,14 +78,14 @@ def capture_measurement():
     # Create DataFrame
     df = pd.DataFrame(records)
 
-    # No packets
+    # No packets captured
     if df.empty:
 
         print("No packets captured.")
 
         return
 
-    # Convert timestamp
+    # Convert timestamp to Thailand time
     df["timestamp"] = pd.to_datetime(
         df["timestamp"],
         unit="s",
@@ -101,7 +100,8 @@ def capture_measurement():
         CAPTURE_DURATION
     )
 
-    # Measurement timestamp
+    # Use first packet timestamp
+    # as the measurement timestamp
     measurement_time = df["timestamp"].min()
 
     # Historical record
@@ -178,7 +178,9 @@ def main():
     print("================================")
     print()
 
-    print(f"Interface: {INTERFACE}")
+    print(
+        f"Interface: {INTERFACE}"
+    )
 
     print(
         f"Measurement interval: "

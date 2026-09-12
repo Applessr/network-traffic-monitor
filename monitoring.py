@@ -97,13 +97,7 @@ def calculate_deviation(
     return deviation
 
 
-def generate_alert(
-    status,
-    current_throughput,
-    baseline,
-    warning_threshold,
-    deviation
-):
+def generate_alert(status):
 
     if status == "WARNING":
 
@@ -213,13 +207,7 @@ def main():
     # -------------------------
     # Generate alert
     # -------------------------
-    generate_alert(
-        status,
-        current_throughput,
-        baseline,
-        warning_threshold,
-        deviation
-    )
+    generate_alert(status)
 
 
 if __name__ == "__main__":

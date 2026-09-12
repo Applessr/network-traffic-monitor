@@ -3,6 +3,7 @@ import streamlit as st
 import plotly.express as px
 
 from streamlit_autorefresh import st_autorefresh
+from metrics import format_bytes
 
 from monitoring import (
     calculate_baseline,
@@ -24,6 +25,7 @@ st.set_page_config(
     layout="wide"
 )
 
+
 # Refresh every 10 seconds
 st_autorefresh(
     interval=10000,
@@ -44,10 +46,12 @@ def load_data():
     if df.empty:
         return df
 
+    # Convert timestamp
     df["timestamp"] = pd.to_datetime(
         df["timestamp"]
     )
 
+    # Sort by time
     df = df.sort_values(
         "timestamp"
     ).reset_index(drop=True)
@@ -94,7 +98,9 @@ current_bytes = (
 # Baseline Monitoring
 # ==================================================
 
-baseline = calculate_baseline(df)
+baseline = calculate_baseline(
+    df
+)
 
 status, warning_threshold = (
     compare_with_baseline(
@@ -133,7 +139,7 @@ with col1:
 
     st.metric(
         "Traffic Volume",
-        f"{current_bytes / 1024:.2f} KB"
+        format_bytes(current_bytes)
     )
 
 
@@ -169,6 +175,7 @@ st.subheader(
     "Historical Network Throughput"
 )
 
+
 # Time range selector
 period = st.selectbox(
     "Select time range",
@@ -182,15 +189,19 @@ period = st.selectbox(
 )
 
 
-# Current time from latest historical record
+# Latest timestamp
 latest_time = df["timestamp"].max()
 
 
-# Filter historical data
+# ==================================================
+# Filter Historical Data
+# ==================================================
+
 if period == "Last 1 Hour":
 
     start_time = (
-        latest_time - pd.Timedelta(hours=1)
+        latest_time
+        - pd.Timedelta(hours=1)
     )
 
     historical_view = df[
@@ -201,7 +212,8 @@ if period == "Last 1 Hour":
 elif period == "Last 6 Hours":
 
     start_time = (
-        latest_time - pd.Timedelta(hours=6)
+        latest_time
+        - pd.Timedelta(hours=6)
     )
 
     historical_view = df[
@@ -212,7 +224,8 @@ elif period == "Last 6 Hours":
 elif period == "Last 24 Hours":
 
     start_time = (
-        latest_time - pd.Timedelta(hours=24)
+        latest_time
+        - pd.Timedelta(hours=24)
     )
 
     historical_view = df[
@@ -225,26 +238,35 @@ else:
     historical_view = df
 
 
-# Historical throughput chart
-throughput_fig = px.line(
-    historical_view,
-    x="timestamp",
-    y="throughput_mbps",
-    markers=True,
-    title="Throughput Over Time"
-)
+# ==================================================
+# Historical Throughput Chart
+# ==================================================
 
+if historical_view.empty:
 
-throughput_fig.update_layout(
-    xaxis_title="Time",
-    yaxis_title="Throughput (Mbps)"
-)
+    st.info(
+        "No historical data available for this time range."
+    )
 
+else:
 
-st.plotly_chart(
-    throughput_fig,
-    use_container_width=True
-)
+    throughput_fig = px.line(
+        historical_view,
+        x="timestamp",
+        y="throughput_mbps",
+        markers=True,
+        title="Throughput Over Time"
+    )
+
+    throughput_fig.update_layout(
+        xaxis_title="Time",
+        yaxis_title="Throughput (Mbps)"
+    )
+
+    st.plotly_chart(
+        throughput_fig,
+        use_container_width=True
+    )
 
 
 # ==================================================
@@ -282,10 +304,12 @@ with col1:
 
     })
 
+
     # Remove protocols with zero traffic
     protocol_data = protocol_data[
         protocol_data["Percentage"] > 0
     ]
+
 
     protocol_fig = px.bar(
         protocol_data,
@@ -295,15 +319,18 @@ with col1:
         title="Protocol Distribution"
     )
 
+
     protocol_fig.update_layout(
         xaxis_title="Protocol",
         yaxis_title="Percentage (%)"
     )
 
+
     protocol_fig.update_traces(
         texttemplate="%{text:.2f}%",
         textposition="outside"
     )
+
 
     st.plotly_chart(
         protocol_fig,
@@ -321,25 +348,30 @@ with col2:
         "Baseline Comparison"
     )
 
+
     st.metric(
         "Current Throughput",
         f"{current_throughput:.3f} Mbps"
     )
+
 
     st.metric(
         "Normal Baseline",
         f"{baseline:.3f} Mbps"
     )
 
+
     st.metric(
         "Warning Threshold",
         f"{warning_threshold:.3f} Mbps"
     )
 
+
     st.metric(
         "Deviation",
         f"{deviation:+.2f}%"
     )
+
 
     if status == "WARNING":
 
@@ -376,6 +408,10 @@ recent_data = df[
 ].tail(10).copy()
 
 
+# ==================================================
+# Format Recent Data
+# ==================================================
+
 # Convert bytes to KB
 recent_data["total_bytes"] = (
     recent_data["total_bytes"]
@@ -408,6 +444,10 @@ recent_data = recent_data.rename(
     }
 )
 
+
+# ==================================================
+# Display Recent Data
+# ==================================================
 
 st.dataframe(
     recent_data,
