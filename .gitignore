@@ -1,0 +1,20 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Historical data
+historical_data.csv
+historical_data_old.csv
+historical_data_backup.csv
+
+# Generated HTML charts
+*.html
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
