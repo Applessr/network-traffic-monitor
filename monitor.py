@@ -138,6 +138,11 @@ def capture_measurement():
     )
 
     print(
+        f"Throughput: "
+        f"{metrics['throughput_mbps']:.2f} Mbps"
+    )
+
+    print(
         f"TCP: {metrics['tcp_percent']:.2f}%"
     )
 

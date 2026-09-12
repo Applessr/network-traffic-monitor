@@ -2,11 +2,16 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
+from streamlit_autorefresh import st_autorefresh
+
+from monitoring import (
+    calculate_baseline,
+    compare_with_baseline,
+    calculate_deviation
+)
+
 
 HISTORICAL_FILE = "historical_data.csv"
-
-BASELINE_WINDOW = 10
-WARNING_MULTIPLIER = 1.5
 
 
 # ==================================================
@@ -19,12 +24,17 @@ st.set_page_config(
     layout="wide"
 )
 
+# Refresh every 10 seconds
+st_autorefresh(
+    interval=10000,
+    key="network_monitor_refresh"
+)
+
 
 # ==================================================
 # Load Historical Data
 # ==================================================
 
-@st.cache_data
 def load_data():
 
     df = pd.read_csv(
@@ -81,49 +91,22 @@ current_bytes = (
 
 
 # ==================================================
-# Baseline
+# Baseline Monitoring
 # ==================================================
 
-if len(df) <= 1:
+baseline = calculate_baseline(df)
 
-    baseline = df[
-        "throughput_mbps"
-    ].mean()
-
-else:
-
-    start_index = max(
-        0,
-        len(df) - BASELINE_WINDOW - 1
+status, warning_threshold = (
+    compare_with_baseline(
+        current_throughput,
+        baseline
     )
-
-    previous_data = df.iloc[
-        start_index:-1
-    ]
-
-    baseline = (
-        previous_data[
-            "throughput_mbps"
-        ].mean()
-    )
-
-
-warning_threshold = (
-    baseline * WARNING_MULTIPLIER
 )
 
-
-# ==================================================
-# Status
-# ==================================================
-
-if current_throughput > warning_threshold:
-
-    status = "WARNING"
-
-else:
-
-    status = "NORMAL"
+deviation = calculate_deviation(
+    current_throughput,
+    baseline
+)
 
 
 # ==================================================
@@ -191,7 +174,8 @@ throughput_fig = px.line(
     df,
     x="timestamp",
     y="throughput_mbps",
-    markers=True
+    markers=True,
+    title="Throughput Over Time"
 )
 
 
@@ -208,11 +192,15 @@ st.plotly_chart(
 
 
 # ==================================================
-# Protocol Distribution
+# Protocol Distribution + Baseline
 # ==================================================
 
 col1, col2 = st.columns(2)
 
+
+# ==================================================
+# Protocol Distribution
+# ==================================================
 
 with col1:
 
@@ -235,8 +223,10 @@ with col1:
             latest["icmp_percent"],
             latest["arp_percent"]
         ]
+
     })
 
+    # Remove protocols with zero traffic
     protocol_data = protocol_data[
         protocol_data["Percentage"] > 0
     ]
@@ -245,7 +235,8 @@ with col1:
         protocol_data,
         x="Protocol",
         y="Percentage",
-        text="Percentage"
+        text="Percentage",
+        title="Protocol Distribution"
     )
 
     protocol_fig.update_layout(
@@ -289,6 +280,11 @@ with col2:
         f"{warning_threshold:.3f} Mbps"
     )
 
+    st.metric(
+        "Deviation",
+        f"{deviation:+.2f}%"
+    )
+
     if status == "WARNING":
 
         st.warning(
@@ -303,7 +299,7 @@ with col2:
 
 
 # ==================================================
-# Historical Data Table
+# Recent Historical Data
 # ==================================================
 
 st.subheader(
@@ -324,24 +320,35 @@ recent_data = df[
 ].tail(10).copy()
 
 
+# Convert bytes to KB
 recent_data["total_bytes"] = (
     recent_data["total_bytes"]
     / 1024
 ).round(2)
 
 
+# Round throughput
 recent_data["throughput_mbps"] = (
     recent_data["throughput_mbps"]
     .round(3)
 )
 
 
+# Rename columns
 recent_data = recent_data.rename(
     columns={
-        "timestamp": "Time",
-        "total_packets": "Packets",
-        "total_bytes": "Traffic (KB)",
-        "throughput_mbps": "Throughput (Mbps)"
+
+        "timestamp":
+            "Time",
+
+        "total_packets":
+            "Packets",
+
+        "total_bytes":
+            "Traffic (KB)",
+
+        "throughput_mbps":
+            "Throughput (Mbps)"
     }
 )
 
