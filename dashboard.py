@@ -169,9 +169,65 @@ st.subheader(
     "Historical Network Throughput"
 )
 
+# Time range selector
+period = st.selectbox(
+    "Select time range",
+    [
+        "Last 1 Hour",
+        "Last 6 Hours",
+        "Last 24 Hours",
+        "All Data"
+    ],
+    index=3
+)
 
+
+# Current time from latest historical record
+latest_time = df["timestamp"].max()
+
+
+# Filter historical data
+if period == "Last 1 Hour":
+
+    start_time = (
+        latest_time - pd.Timedelta(hours=1)
+    )
+
+    historical_view = df[
+        df["timestamp"] >= start_time
+    ]
+
+
+elif period == "Last 6 Hours":
+
+    start_time = (
+        latest_time - pd.Timedelta(hours=6)
+    )
+
+    historical_view = df[
+        df["timestamp"] >= start_time
+    ]
+
+
+elif period == "Last 24 Hours":
+
+    start_time = (
+        latest_time - pd.Timedelta(hours=24)
+    )
+
+    historical_view = df[
+        df["timestamp"] >= start_time
+    ]
+
+
+else:
+
+    historical_view = df
+
+
+# Historical throughput chart
 throughput_fig = px.line(
-    df,
+    historical_view,
     x="timestamp",
     y="throughput_mbps",
     markers=True,
@@ -299,11 +355,11 @@ with col2:
 
 
 # ==================================================
-# Recent Historical Data
+# Recent Measurements
 # ==================================================
 
 st.subheader(
-    "Recent Historical Measurements"
+    "Recent Measurements"
 )
 
 

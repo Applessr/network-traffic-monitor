@@ -1,39 +1,651 @@
 # Network Traffic Analyzer and Performance Monitoring Dashboard
 
-A Python-based network traffic monitoring tool that captures network packets, analyzes traffic, calculates traffic metrics, stores historical measurements, compares current traffic with a baseline, and presents the results through a Streamlit dashboard.
+A Python-based network traffic monitoring application that captures and analyzes network packets, calculates traffic metrics, stores historical measurements, compares current traffic with a recent baseline, and provides automatic alerts through an interactive dashboard.
 
-## Features
+---
 
-- Packet capture using Scapy
-- Packet analysis
-- Source and destination IP information
-- Protocol analysis
-- Traffic volume measurement
-- Throughput measurement
+## 1. Project Overview
+
+The **Network Traffic Analyzer and Performance Monitoring Dashboard** is a network monitoring application developed using Python.
+
+The system captures network traffic from a selected network interface using **Scapy**, analyzes packet-level information, calculates network traffic metrics, stores measurement results over time, and visualizes the results through a **Streamlit dashboard**.
+
+The system also provides:
+
 - Historical traffic monitoring
 - Baseline comparison
-- Automatic traffic alerts
-- Interactive dashboard using Streamlit and Plotly
+- Automatic warning alerts
+- Interactive charts
+- Throughput validation using iPerf3
 
-## Technologies
+The goal is not to replace advanced tools such as Wireshark, but to provide a focused and automated workflow for network traffic monitoring and interpretation.
+
+---
+
+## 2. Main Features
+
+### Packet Capture
+- Captures network packets from a selected network interface
+- Uses Scapy for packet capture
+- Current interface configuration: `en0`
+- Measurement interval: 10 seconds
+
+### Packet Analysis
+
+The system extracts:
+
+- Timestamp
+- Source IP address
+- Destination IP address
+- Protocol
+- Packet size
+
+Supported protocol categories include:
+
+- TCP
+- UDP
+- ICMP
+- ARP
+- Other
+
+### Traffic Metrics
+
+The system calculates:
+
+#### Traffic Volume
+
+Total number of bytes observed during each measurement interval.
+
+#### Throughput
+
+Observed traffic converted into bits per second and represented in Mbps.
+
+#### Protocol Distribution
+
+Percentage of captured packets belonging to each protocol.
+
+### Historical Monitoring
+
+Measurement results are continuously stored in:
+
+```text
+historical_data.csv
+```
+
+The dashboard displays throughput trends over time and provides time-range selection.
+
+Available historical views:
+
+- Last 1 Hour
+- Last 6 Hours
+- Last 24 Hours
+- All Data
+
+### Baseline Comparison
+
+The current throughput is compared with the average throughput of the previous 10 measurement intervals.
+
+### Automatic Alert
+
+The system generates a warning when the current throughput exceeds:
+
+```text
+Baseline × 1.5
+```
+
+This threshold is a prototype design choice used to detect significant increases in traffic.
+
+### Interactive Dashboard
+
+The dashboard is implemented using:
+
+- Streamlit
+- Plotly
+
+The dashboard provides:
+
+- Current traffic statistics
+- Current throughput
+- Packet count
+- Baseline
+- Historical throughput chart
+- Protocol distribution
+- Baseline comparison
+- Automatic warning status
+- Recent measurements
+- Historical time-range selection
+- Automatic refresh every 10 seconds
+
+---
+
+## 3. System Architecture
+
+```text
+Network Traffic
+       |
+       v
+Packet Capture
+    (Scapy)
+       |
+       v
+Packet Analysis
+       |
+       +----------------------------+
+       |             |              |
+       v             v              v
+Traffic Volume   Throughput    Protocol Distribution
+       |             |              |
+       +-------------+--------------+
+                     |
+                     v
+              Historical Data
+                     |
+                     v
+             Baseline Comparison
+                     |
+                     v
+               Automatic Alert
+                     |
+                     v
+             Streamlit Dashboard
+                     |
+                     v
+            Charts + Statistics
+              + Alerts + Trends
+```
+
+---
+
+## 4. Project Structure
+
+```text
+network-monitor/
+│
+├── analysis.py
+├── metrics.py
+├── storage.py
+├── monitoring.py
+├── monitor.py
+├── dashboard.py
+├── historical_chart.py
+├── test_alert.py
+│
+├── README.md
+├── requirements.txt
+├── .gitignore
+│
+├── evidence/
+│
+└── historical_data.csv
+```
+
+### File Description
+
+| File | Description |
+|---|---|
+| `analysis.py` | Analyzes captured packets and extracts packet information |
+| `metrics.py` | Calculates traffic volume, throughput, and protocol percentages |
+| `storage.py` | Saves measurement results to CSV |
+| `monitor.py` | Continuously captures traffic every 10 seconds and stores measurements |
+| `monitoring.py` | Calculates baseline, warning threshold, deviation, and alert status |
+| `dashboard.py` | Streamlit dashboard for visualization and monitoring |
+| `historical_chart.py` | Utility for generating historical charts |
+| `test_alert.py` | Simple test script for the alert logic |
+| `historical_data.csv` | Historical measurement data generated by the monitoring system |
+| `evidence/` | Screenshots and testing evidence |
+
+---
+
+## 5. Technologies
+
+### Programming Language
 
 - Python
+
+### Libraries
+
 - Scapy
 - Pandas
 - Plotly
 - Streamlit
+- streamlit-autorefresh
 
-## Project Structure
+### Network Testing
+
+- iPerf3
+
+### Development Environment
+
+- Visual Studio Code
+- Python Virtual Environment (`venv`)
+
+---
+
+## 6. Requirements
+
+- Python 3.x
+- macOS or another operating system supported by the installed dependencies
+- Scapy
+- Pandas
+- Plotly
+- Streamlit
+- streamlit-autorefresh
+- iPerf3 for throughput validation
+
+For macOS packet capture, administrator/root privileges may be required.
+
+---
+
+## 7. Installation
+
+### 7.1 Clone the Project
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd network-monitor
+```
+
+### 7.2 Create a Virtual Environment
+
+```bash
+python3 -m venv .venv
+```
+
+### 7.3 Activate the Virtual Environment
+
+```bash
+source .venv/bin/activate
+```
+
+### 7.4 Install Python Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 7.5 Install iPerf3
+
+On macOS using Homebrew:
+
+```bash
+brew install iperf3
+```
+
+Check the installation:
+
+```bash
+iperf3 --version
+```
+
+---
+
+## 8. Running the Network Monitor
+
+The monitor captures packets every 10 seconds and saves the results to `historical_data.csv`.
+
+Run:
+
+```bash
+sudo .venv/bin/python monitor.py
+```
+
+The program will display:
 
 ```text
-network-monitor/
-├── analysis.py
-├── capture.py
-├── dashboard.py
-├── metrics.py
-├── monitor.py
-├── monitoring.py
-├── storage.py
-├── requirements.txt
-└── README.md
+================================
+Network Traffic Monitor
+================================
 
+Interface: en0
+Measurement interval: 10 seconds
+
+Press Ctrl+C to stop.
+```
+
+A typical measurement result looks like:
+
+```text
+Measurement Result:
+Packets: 4990
+Traffic: 6.01 MB
+Throughput: 5.04 Mbps
+TCP: 98.02%
+UDP: 1.76%
+ICMP: 0.00%
+ARP: 0.04%
+Saved to historical_data.csv
+```
+
+Press:
+
+```text
+Ctrl+C
+```
+
+to stop monitoring.
+
+---
+
+## 9. Running the Dashboard
+
+Open another terminal window.
+
+Activate the virtual environment:
+
+```bash
+source .venv/bin/activate
+```
+
+Run:
+
+```bash
+streamlit run dashboard.py
+```
+
+The dashboard runs locally using Streamlit.
+
+The dashboard automatically refreshes every 10 seconds to display newly stored measurements.
+
+---
+
+## 10. Dashboard
+
+The dashboard contains the following sections.
+
+### Current Metrics
+
+Displays:
+
+- Traffic Volume
+- Throughput
+- Packet Count
+- Baseline
+
+### Historical Network Throughput
+
+Displays throughput over time using an interactive Plotly line chart.
+
+Users can select:
+
+- Last 1 Hour
+- Last 6 Hours
+- Last 24 Hours
+- All Data
+
+### Current Protocol Distribution
+
+Displays the percentage of:
+
+- TCP
+- UDP
+- ICMP
+- ARP
+
+### Baseline Comparison
+
+Displays:
+
+- Current Throughput
+- Normal Baseline
+- Warning Threshold
+- Deviation
+- Monitoring Status
+
+Possible statuses:
+
+```text
+NORMAL
+WARNING
+```
+
+### Recent Measurements
+
+Displays the latest measurements recorded by the monitoring system.
+
+---
+
+## 11. Baseline Monitoring
+
+The system uses a moving baseline based on the previous 10 measurement intervals.
+
+For a new measurement:
+
+```text
+Baseline =
+Average throughput of the previous 10 measurements
+```
+
+The current measurement is excluded from the baseline calculation.
+
+The warning threshold is:
+
+```text
+Warning Threshold = Baseline × 1.5
+```
+
+The system generates a warning when:
+
+```text
+Current Throughput > Warning Threshold
+```
+
+Otherwise, the status is:
+
+```text
+NORMAL
+```
+
+### Example
+
+```text
+Current Throughput = 5.292 Mbps
+Baseline           = 0.778 Mbps
+Warning Threshold  = 1.167 Mbps
+Deviation          = +579.92%
+Status             = WARNING
+```
+
+---
+
+## 12. Throughput Validation Using iPerf3
+
+The throughput measurement is validated using controlled traffic generated by iPerf3.
+
+### Test Setup
+
+```text
+Mac
+ |
+ | iPerf3 Client
+ |
+ | Network Traffic
+ v
+Windows Notebook
+iPerf3 Server
+```
+
+The Mac simultaneously captures the traffic using Scapy.
+
+### Start the iPerf3 Server
+
+On the Windows notebook:
+
+```bash
+iperf3 -s
+```
+
+The server listens on:
+
+```text
+Port 5201
+```
+
+### Run the iPerf3 Client
+
+On the Mac:
+
+```bash
+iperf3 -c 192.168.1.11 -b 5M -t 10
+```
+
+Where:
+
+- `-c` specifies the server
+- `-b 5M` targets approximately 5 Mbps
+- `-t 10` runs the test for 10 seconds
+
+### Example Validation Results
+
+| Test | iPerf3 | Our Analyzer | Difference |
+|---|---:|---:|---:|
+| 1 | 5.03 Mbps | 5.09 Mbps | 1.19% |
+| 2 | 5.03 Mbps | 5.18 Mbps | 2.98% |
+| 3 | 5.03 Mbps | 5.20 Mbps | 3.38% |
+
+The measurements were close to the iPerf3 reference values in the tested cases.
+
+---
+
+## 13. Evaluation
+
+The system is evaluated using the following test cases:
+
+| Test Case | Expected Result |
+|---|---|
+| Packet Capture | Packets are captured successfully |
+| Packet Analysis | Timestamp, IP, protocol, and packet size are extracted |
+| Traffic Volume | Total observed bytes are calculated |
+| Throughput | Throughput is calculated from captured traffic |
+| Protocol Distribution | Protocol percentages are displayed |
+| Historical Monitoring | Measurements are stored and visualized over time |
+| Baseline Comparison | Current traffic is compared with recent historical traffic |
+| Automatic Alert | NORMAL/WARNING status is generated correctly |
+| Dashboard | Results are displayed interactively |
+| iPerf3 Validation | Measured throughput is compared with controlled traffic |
+
+---
+
+## 14. Limitations
+
+The current prototype has the following limitations:
+
+1. The system measures observed traffic on the selected network interface. It does not represent the maximum Internet connection speed.
+
+2. The throughput measurement can include other network traffic present on the interface during the measurement interval.
+
+3. The baseline uses the previous 10 measurements and may change as new measurements are recorded.
+
+4. The warning threshold of 1.5 times the baseline is a prototype rule and is not a universal network standard.
+
+5. The application currently focuses on passive traffic monitoring and does not measure network latency or packet loss.
+
+6. Packet capture on some operating systems may require administrator/root privileges.
+
+---
+
+## 15. Future Improvements
+
+Possible future improvements include:
+
+- More flexible baseline methods
+- Configurable alert thresholds
+- Additional protocol analysis
+- Traffic source/destination analysis
+- More advanced anomaly detection
+- Improved dashboard user interface
+- Longer-term historical reporting
+- Exportable reports
+
+---
+
+## 16. Demonstration Flow
+
+The recommended demonstration workflow is:
+
+```text
+1. Start Network Monitor
+        |
+        v
+2. Open Dashboard
+        |
+        v
+3. Show Normal Traffic
+        |
+        v
+4. Run iPerf3 at approximately 5 Mbps
+        |
+        v
+5. Dashboard detects increased throughput
+        |
+        v
+6. Baseline comparison changes
+        |
+        v
+7. WARNING alert appears
+        |
+        v
+8. Stop iPerf3
+        |
+        v
+9. Traffic returns to normal
+        |
+        v
+10. Dashboard returns to NORMAL
+```
+
+---
+
+## 17. Security and Privacy
+
+This project should be used only on networks where packet capture is authorized.
+
+The generated `historical_data.csv` may contain observed network addresses and should not be publicly shared unless the data has been reviewed and sanitized.
+
+For this reason, the historical data file should normally be excluded from Git commits.
+
+---
+
+## 18. Development Status
+
+Current implementation status:
+
+- [x] Packet Capture
+- [x] Packet Analysis
+- [x] Traffic Volume
+- [x] Throughput
+- [x] Protocol Distribution
+- [x] Historical Data Storage
+- [x] Historical Throughput Chart
+- [x] Historical Time Range Selection
+- [x] Baseline Comparison
+- [x] Automatic Alert
+- [x] Streamlit Dashboard
+- [x] Dashboard Auto Refresh
+- [x] iPerf3 Throughput Validation
+- [ ] Final UI Refinement
+- [ ] Final Presentation
+- [ ] Final Poster
+- [ ] Final Demo Rehearsal
+
+---
+
+## 19. Authors
+
+**Course:** Computer Networking
+
+**Assignment:** Assignment #3 — Network Tool / Application / Simulation Project
+
+**Project:** Network Traffic Analyzer and Performance Monitoring Dashboard
+
+**Team Members:**
+- Student 1: ____________________
+- Student 2: ____________________
+- Student 3: ____________________
+
+**Instructor:** ____________________
+
+---
+
+## 20. License
+
+This project was developed for academic purposes.

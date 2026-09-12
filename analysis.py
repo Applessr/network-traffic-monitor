@@ -1,7 +1,4 @@
-import pandas as pd
-
 from scapy.all import (
-    sniff,
     IP,
     IPv6,
     ARP,
@@ -9,13 +6,6 @@ from scapy.all import (
     UDP,
     ICMP
 )
-
-from metrics import calculate_metrics, format_bytes
-from storage import save_measurement
-
-
-INTERFACE = "en0"
-CAPTURE_DURATION = 10
 
 
 def analyze_packet(packet):
@@ -74,4 +64,3 @@ def analyze_packet(packet):
         "protocol": protocol,
         "packet_size": packet_size
     }
-
