@@ -114,6 +114,26 @@ deviation = calculate_deviation(
     baseline
 )
 
+# ==================================================
+# Alert Toast
+# ==================================================
+
+if "previous_status" not in st.session_state:
+    st.session_state.previous_status = status
+
+
+if (
+    status == "WARNING"
+    and st.session_state.previous_status != "WARNING"
+):
+
+    st.toast(
+        "Current traffic is above the baseline.",
+        icon="🚨",
+        duration="long"
+    )
+
+st.session_state.previous_status = status
 
 # ==================================================
 # Header
