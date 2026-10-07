@@ -695,7 +695,7 @@ if (
 ):
 
     st.toast(
-        "Current traffic is above the baseline.",
+        "Current traffic is above the warning threshold.",
         icon="🚨"
     )
 
@@ -1383,7 +1383,7 @@ with baseline_col:
             st.markdown(
                 """
                 <div class="warning-box">
-                    ⚠ <b>WARNING</b> — current traffic is above the baseline.
+                    ⚠ <b>WARNING</b> — current traffic is above the warning threshold.
                 </div>
                 """,
                 unsafe_allow_html=True
